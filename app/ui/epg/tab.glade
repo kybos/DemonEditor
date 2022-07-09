@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.2
+<!-- Generated with glade 3.22.1 
 
 The MIT License (MIT)
 
@@ -233,6 +233,7 @@ Author: Dmitriy Yefremov
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="model">epg_sort_model</property>
+                <property name="expander_column">epg_desc_column</property>
                 <property name="rules_hint">True</property>
                 <property name="rubber_banding">True</property>
                 <property name="enable_grid_lines">both</property>
@@ -245,6 +246,7 @@ Author: Dmitriy Yefremov
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn" id="epg_title_column">
+                    <property name="resizable">True</property>
                     <property name="min_width">25</property>
                     <property name="title" translatable="yes">Title</property>
                     <property name="alignment">0.49000000953674316</property>
@@ -261,6 +263,7 @@ Author: Dmitriy Yefremov
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn" id="epg_time_column">
+                    <property name="resizable">True</property>
                     <property name="min_width">25</property>
                     <property name="title" translatable="yes">Time</property>
                     <property name="alignment">0.49000000953674316</property>
@@ -277,6 +280,8 @@ Author: Dmitriy Yefremov
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn" id="epg_desc_column">
+                    <property name="resizable">True</property>
+                    <property name="sizing">autosize</property>
                     <property name="title" translatable="yes">Description</property>
                     <property name="expand">True</property>
                     <property name="alignment">0.49000000953674316</property>

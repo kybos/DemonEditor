@@ -261,11 +261,16 @@ class EpgTool(Gtk.Box):
     def get_event(event, show_day=True):
         title = event.get("e2eventtitle", "") or ""
         desc = event.get("e2eventdescription", "") or ""
+        descx = event.get("e2eventdescriptionextended", "") or ""
+        if desc != "" and descx != "":
+            desc += "\n" + descx
+        elif descx != "":
+            desc = descx
 
         start = int(event.get("e2eventstart", "0"))
         start_time = datetime.fromtimestamp(start)
         end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
-        ev_time = f"{start_time.strftime('%A, %H:%M' if show_day else '%H:%M')} - {end_time.strftime('%H:%M')}"
+        ev_time = f"{start_time.strftime('%Y-%m-%d %H:%M' if show_day else '%H:%M')} - {end_time.strftime('%H:%M')}"
 
         return EpgEvent(title, ev_time, desc, event)
 
