@@ -38,6 +38,8 @@ from enum import Enum
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 
+from gi.repository import GLib
+
 from app.commons import run_idle, run_task, run_with_delay
 from app.connections import download_data, DownloadType, HttpAPI
 from app.eparser.ecommons import BouquetService, BqServiceType
@@ -201,6 +203,8 @@ class EpgTool(Gtk.Box):
         self._filter_entry = builder.get_object("epg_filter_entry")
         builder.get_object("epg_filter_button").bind_property("active", self._filter_entry, "visible")
         self.pack_start(builder.get_object("epg_frame"), True, True, 0)
+        # Custom sort function.
+        self._view.get_model().set_sort_func(1, self.time_sort_func, 1)
 
         cell_renderer = builder.get_object("epg_desc_renderer")
         cell_renderer.props.ellipsize = False
@@ -269,8 +273,10 @@ class EpgTool(Gtk.Box):
 
     @staticmethod
     def get_event(event, show_day=True):
+        t_str = f"{'%A, ' if show_day else ''}%x, %H:%M"
         title = event.get("e2eventtitle", "") or ""
         desc = event.get("e2eventdescription", "") or ""
+
         desc_x = event.get("e2eventdescriptionextended", "") or ""
         if desc != "" and desc_x != "":
             desc += "\n" + desc_x
@@ -280,7 +286,7 @@ class EpgTool(Gtk.Box):
         start = int(event.get("e2eventstart", "0"))
         start_time = datetime.fromtimestamp(start)
         end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
-        ev_time = f"{start_time.strftime('%a %x %H:%M' if show_day else '%H:%M')} - {end_time.strftime('%H:%M')}"
+        ev_time = f"{start_time.strftime(t_str)} - {end_time.strftime('%H:%M')}"
 
         return EpgEvent(title, ev_time, desc, event)
 
@@ -294,6 +300,13 @@ class EpgTool(Gtk.Box):
     def epg_filter_function(self, model, itr, data):
         txt = self._filter_entry.get_text().upper()
         return next((s for s in model.get(itr, 0, 1, 2) if txt in s.upper()), False)
+
+    def time_sort_func(self, model, iter1, iter2, column):
+        """ Custom sort function for time column. """
+        event1 = model.get_value(iter1, 3)
+        event2 = model.get_value(iter2, 3)
+
+        return int(event1.get("e2eventstart", "0")) - int(event2.get("e2eventstart", "0"))
 
 
 class EpgDialog:
