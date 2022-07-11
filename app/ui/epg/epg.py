@@ -38,8 +38,6 @@ from enum import Enum
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 
-from gi.repository import GLib
-
 from app.commons import run_idle, run_task, run_with_delay
 from app.connections import download_data, DownloadType, HttpAPI
 from app.eparser.ecommons import BouquetService, BqServiceType
@@ -48,7 +46,8 @@ from app.tools.epg import EPG, ChannelsParser, EpgEvent, XmlTvReader
 from app.ui.dialogs import get_message, show_dialog, DialogType, get_builder
 from app.ui.timers import TimerTool
 from ..main_helper import on_popup_menu, update_entry_data
-from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page
+from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page, GLib
+from gi.overrides.Pango import Pango
 
 
 class RefsSource(Enum):
@@ -202,7 +201,18 @@ class EpgTool(Gtk.Box):
         self._filter_entry = builder.get_object("epg_filter_entry")
         builder.get_object("epg_filter_button").bind_property("active", self._filter_entry, "visible")
         self.pack_start(builder.get_object("epg_frame"), True, True, 0)
+
+        cell_renderer = builder.get_object("epg_desc_renderer")
+        cell_renderer.props.ellipsize = False
+        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
+        column = builder.get_object("epg_desc_column")
+        column.connect_after("notify::width", self.set_column_width, cell_renderer)
+
         self.show()
+
+    def set_column_width(self, column, event, renderer):
+        column_width = column.get_width()
+        renderer.props.wrap_width = column_width
 
     def on_timer_add(self, action=None, value=None):
         model, paths = self._view.get_selection().get_selected_rows()
@@ -261,16 +271,16 @@ class EpgTool(Gtk.Box):
     def get_event(event, show_day=True):
         title = event.get("e2eventtitle", "") or ""
         desc = event.get("e2eventdescription", "") or ""
-        descx = event.get("e2eventdescriptionextended", "") or ""
-        if desc != "" and descx != "":
-            desc += "\n" + descx
-        elif descx != "":
-            desc = descx
+        desc_x = event.get("e2eventdescriptionextended", "") or ""
+        if desc != "" and desc_x != "":
+            desc += "\n" + desc_x
+        elif desc_x != "":
+            desc = desc_x
 
         start = int(event.get("e2eventstart", "0"))
         start_time = datetime.fromtimestamp(start)
         end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
-        ev_time = f"{start_time.strftime('%Y-%m-%d %H:%M' if show_day else '%H:%M')} - {end_time.strftime('%H:%M')}"
+        ev_time = f"{start_time.strftime('%a %x %H:%M' if show_day else '%H:%M')} - {end_time.strftime('%H:%M')}"
 
         return EpgEvent(title, ev_time, desc, event)
 

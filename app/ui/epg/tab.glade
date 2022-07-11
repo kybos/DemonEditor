@@ -281,15 +281,13 @@ Author: Dmitriy Yefremov
                 <child>
                   <object class="GtkTreeViewColumn" id="epg_desc_column">
                     <property name="resizable">True</property>
-                    <property name="sizing">autosize</property>
                     <property name="title" translatable="yes">Description</property>
                     <property name="expand">True</property>
                     <property name="alignment">0.49000000953674316</property>
                     <child>
-                      <object class="GtkCellRendererText" id="epg_desc_renderer">
-                        <property name="ellipsize">end</property>
-                      </object>
+                      <object class="GtkCellRendererText" id="epg_desc_renderer"/>
                       <attributes>
+                        <attribute name="font">0</attribute>
                         <attribute name="text">2</attribute>
                       </attributes>
                     </child>
