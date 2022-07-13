@@ -236,7 +236,7 @@ class TimerTool(Gtk.Box):
 
         def set_timer_from_event_data(self):
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", ""))
-            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", ""))
+            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", "") if None else "")
             self._timer_service_entry.set_text(self._timer_data.get("e2eventservicename", ""))
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2eventservicereference", ""))
             self._timer_event_id_entry.set_text(self._timer_data.get("e2eventid", ""))
@@ -350,7 +350,7 @@ class TimerTool(Gtk.Box):
         service = timer.get("e2servicename", "") or ""
         start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
         end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
-        time = f"{start_time.strftime('%a %x %H:%M')} - {end_time.strftime('%H:%M')}"
+        time = f"{start_time.strftime('%a, %x, %H:%M')} - {end_time.strftime('%H:%M')}"
 
         return disabled, name, service, time, description, timer
 

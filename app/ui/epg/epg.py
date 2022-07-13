@@ -48,7 +48,7 @@ from app.tools.epg import EPG, ChannelsParser, EpgEvent, XmlTvReader
 from app.ui.dialogs import get_message, show_dialog, DialogType, get_builder
 from app.ui.timers import TimerTool
 from ..main_helper import on_popup_menu, update_entry_data
-from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page, GLib
+from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page
 from gi.overrides.Pango import Pango
 
 
@@ -273,7 +273,7 @@ class EpgTool(Gtk.Box):
 
     @staticmethod
     def get_event(event, show_day=True):
-        t_str = f"{'%A, ' if show_day else ''}%x, %H:%M"
+        t_str = f"{'%a, ' if show_day else ''}%x, %H:%M"
         title = event.get("e2eventtitle", "") or ""
         desc = event.get("e2eventdescription", "") or ""
 
