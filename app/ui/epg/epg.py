@@ -49,7 +49,6 @@ from app.ui.dialogs import get_message, show_dialog, DialogType, get_builder
 from app.ui.timers import TimerTool
 from ..main_helper import on_popup_menu, update_entry_data
 from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page
-from gi.overrides.Pango import Pango
 
 
 class RefsSource(Enum):
@@ -207,8 +206,6 @@ class EpgTool(Gtk.Box):
         self._view.get_model().set_sort_func(1, self.time_sort_func, 1)
 
         cell_renderer = builder.get_object("epg_desc_renderer")
-        cell_renderer.props.ellipsize = False
-        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
         column = builder.get_object("epg_desc_column")
         column.connect_after("notify::width", self.set_column_width, cell_renderer)
 
@@ -269,6 +266,7 @@ class EpgTool(Gtk.Box):
     def update_epg_data(self, epg):
         self._model.clear()
         list(map(self._model.append, (self.get_event(e) for e in epg.get("event_list", []))))
+        self.epg_filter_mark(self._filter_entry)
         self._app.wait_dialog.hide()
 
     @staticmethod
@@ -288,13 +286,42 @@ class EpgTool(Gtk.Box):
         end_time = datetime.fromtimestamp(start + int(event.get("e2eventduration", "0")))
         ev_time = f"{start_time.strftime(t_str)} - {end_time.strftime('%H:%M')}"
 
+        title = GLib.markup_escape_text(title)
+        desc = GLib.markup_escape_text(desc)
+
         return EpgEvent(title, ev_time, desc, event)
 
     def on_epg_filter_changed(self, entry):
         self._filter_model.refilter()
 
+        self.epg_filter_cleanup()
+        self.epg_filter_mark(entry)
+
+    def epg_filter_cleanup(self):
+        for r in self._model:
+            for i in [0, 2]:
+                tmp = r[i].replace("<b><u>", "")
+                tmp = tmp.replace("</u></b>", "")
+                self._model.set_value(r.iter, i, tmp)
+
+    def epg_filter_mark(self, entry):
+        txt = entry.get_text()
+        if txt == "":
+            return
+
+        for r in self._filter_model:
+            for i in [0, 2]:
+                if txt.upper() in r[i].upper():
+                    # tmp = r[2].replace(txt, "<b><u>" + txt + "</u></b>")
+                    # tmp = tmp.replace(txt.lower(), "<b><u>" + txt.lower() + "</u></b>")
+                    tmp = re.sub(re.escape(txt), lambda m: "<b><u>" + m.group() + "</u></b>", r[i], flags=re.I)
+                    # tmp = re.sub(re.escape(txt), r"<b><u>\g<0></u></b>", r[i], flags=re.I)
+                    self._filter_model.set_value(r.iter, i, tmp)
+
     def on_epg_filter_toggled(self, button):
-        if not button.get_active():
+        if button.get_active():
+            self._filter_entry.grab_focus()
+        else:
             self._filter_entry.set_text("")
 
     def epg_filter_function(self, model, itr, data):
