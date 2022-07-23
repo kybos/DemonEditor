@@ -236,12 +236,13 @@ class TimerTool(Gtk.Box):
 
         def set_timer_from_event_data(self):
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", ""))
-            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", "") if None else "")
+            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescriptionextended", "")
+                                            or self._timer_data.get("e2eventdescription", "") or "")
             self._timer_service_entry.set_text(self._timer_data.get("e2eventservicename", ""))
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2eventservicereference", ""))
             self._timer_event_id_entry.set_text(self._timer_data.get("e2eventid", ""))
-            self._timer_action_combo_box.set_active_id("1")
-            self._timer_after_combo_box.set_active_id("3")
+            # self._timer_action_combo_box.set_active_id("1")
+            # self._timer_after_combo_box.set_active_id("3")
             start_time = int(self._timer_data.get("e2eventstart", "0"))
             self.set_time_data(start_time, start_time + int(self._timer_data.get("e2eventduration", "0")))
 

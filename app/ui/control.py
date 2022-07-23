@@ -96,6 +96,9 @@ class ControlTool(Gtk.Box):
         app.set_action("on_green", lambda a, v: self.on_remote_action(HttpAPI.Remote.GREEN))
         app.set_action("on_yellow", lambda a, v: self.on_remote_action(HttpAPI.Remote.YELLOW))
         app.set_action("on_blue", lambda a, v: self.on_remote_action(HttpAPI.Remote.BLUE))
+        app.set_action("on_tv", lambda a, v: self.on_remote_action(HttpAPI.Remote.TV))
+        app.set_action("on_radio", lambda a, v: self.on_remote_action(HttpAPI.Remote.RADIO))
+        app.set_action("on_refresh", lambda a, v: self.on_remote_action(HttpAPI.Request.GRUB))
         # Playback.
         app.set_action("on_prev_media", lambda a, v: self.on_player_action(HttpAPI.Request.PLAYER_PREV))
         app.set_action("on_play_media", lambda a, v: self.on_player_action(HttpAPI.Request.PLAYER_PLAY))

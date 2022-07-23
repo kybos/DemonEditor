@@ -312,8 +312,6 @@ class EpgTool(Gtk.Box):
         for r in self._filter_model:
             for i in [0, 2]:
                 if txt.upper() in r[i].upper():
-                    # tmp = r[2].replace(txt, "<b><u>" + txt + "</u></b>")
-                    # tmp = tmp.replace(txt.lower(), "<b><u>" + txt.lower() + "</u></b>")
                     tmp = re.sub(re.escape(txt), lambda m: "<b><u>" + m.group() + "</u></b>", r[i], flags=re.I)
                     # tmp = re.sub(re.escape(txt), r"<b><u>\g<0></u></b>", r[i], flags=re.I)
                     self._filter_model.set_value(r.iter, i, tmp)

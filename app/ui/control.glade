@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.2 
+<!-- Generated with glade 3.22.1 
 
 The MIT License (MIT)
 
@@ -244,7 +244,6 @@ Author: Dmitriy Yefremov
             <property name="can_focus">False</property>
             <property name="label_xalign">0.5</property>
             <property name="shadow_type">in</property>
-            <property name="visible" bind-source="control_network_button" bind-property="active"/>
             <child>
               <object class="GtkBox" id="network_box">
                 <property name="visible">True</property>
@@ -295,7 +294,7 @@ Author: Dmitriy Yefremov
                             <child>
                               <object class="GtkCellRendererText" id="network_ip_renderer">
                                 <property name="xpad">2</property>
-                                <property name="xalign">0.49</property>
+                                <property name="xalign">0.49000000953674316</property>
                               </object>
                               <attributes>
                                 <attribute name="text">1</attribute>
@@ -312,7 +311,7 @@ Author: Dmitriy Yefremov
                             <property name="alignment">0.5</property>
                             <child>
                               <object class="GtkCellRendererText" id="network_status_renderer">
-                                <property name="xalign">0.49</property>
+                                <property name="xalign">0.49000000953674316</property>
                                 <property name="ellipsize">end</property>
                               </object>
                               <attributes>
@@ -716,6 +715,51 @@ Author: Dmitriy Yefremov
                       <packing>
                         <property name="left_attach">2</property>
                         <property name="top_attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="tv_button">
+                        <property name="label" translatable="yes">TV</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="action_name">app.on_tv</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="radio_button">
+                        <property name="label" translatable="yes">RADIO</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="action_name">app.on_radio</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">2</property>
+                        <property name="top_attach">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="refresh_button">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="action_name">app.on_refresh</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="icon_name">view-refresh</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">3</property>
                       </packing>
                     </child>
                   </object>

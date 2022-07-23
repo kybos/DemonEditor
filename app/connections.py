@@ -652,6 +652,8 @@ class HttpAPI:
         YELLOW = "400"
         BLUE = "401"
         BACK = "412"
+        TV = "377"
+        RADIO = "385"
 
     class Power(str, Enum):
         """ Args for HttpRequestType [POWER] class. """
