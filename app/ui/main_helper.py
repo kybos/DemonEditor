@@ -32,7 +32,8 @@ __all__ = ("insert_marker", "move_items", "rename", "ViewTarget", "set_flags", "
            "scroll_to", "get_base_model", "copy_picon_reference", "assign_picons", "remove_picon",
            "is_only_one_item_selected", "gen_bouquets", "BqGenType", "get_selection",
            "get_model_data", "remove_all_unused_picons", "get_picon_pixbuf", "get_base_itrs", "get_iptv_url",
-           "get_iptv_data", "update_entry_data", "append_text_to_tview", "on_popup_menu")
+           "get_iptv_data", "update_entry_data", "append_text_to_tview", "on_popup_menu",
+           "get_event_description")
 
 import os
 import shutil
@@ -709,6 +710,17 @@ def on_popup_menu(menu, event):
     """ Shows popup menu for the view """
     if event.get_event_type() == Gdk.EventType.BUTTON_PRESS and event.button == Gdk.BUTTON_SECONDARY:
         menu.popup(None, None, None, None, event.button, event.time)
+
+
+def get_event_description(event):
+    """ Create full description from epg data """
+    desc = event.get("e2eventdescription", "") or ""
+    desc_x = event.get("e2eventdescriptionextended", "") or ""
+    if desc != "" and desc_x != "":
+        desc += "\n" + desc_x
+    elif desc_x != "":
+        desc = desc_x
+    return desc
 
 
 if __name__ == "__main__":

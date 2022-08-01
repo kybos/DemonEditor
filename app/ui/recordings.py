@@ -27,6 +27,7 @@
 
 
 """ Module for working with recordings. """
+import os.path
 from datetime import datetime
 from ftplib import all_errors
 from urllib.parse import quote
@@ -40,8 +41,9 @@ from ..settings import IS_DARWIN, PlayStreamsMode
 
 
 class RecordingsTool(Gtk.Box):
-    ROOT = ".."
+    # ROOT = ".."
     DEFAULT_PATH = "/hdd"
+    DEFAULT_FOLDER = "movie"
 
     def __init__(self, app, settings, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,6 +62,7 @@ class RecordingsTool(Gtk.Box):
                     "on_path_activated": self.on_path_activated,
                     "on_recordings_activated": self.on_recordings_activated,
                     "on_recording_remove": self.on_recording_remove,
+                    "on_recording_download": self.on_recording_download,
                     "on_recordings_model_changed": self.on_recordings_model_changed,
                     "on_recordings_filter_changed": self.on_recordings_filter_changed,
                     "on_recordings_filter_toggled": self.on_recordings_filter_toggled,
@@ -135,8 +138,9 @@ class RecordingsTool(Gtk.Box):
     def append_paths(self, files):
         model = self._paths_view.get_model()
         model.clear()
-        model.append((None, self.ROOT, self._ftp.pwd()))
+        # model.append((None, self.ROOT, self._ftp.pwd()))
 
+        i = -1
         for f in files:
             f_data = self._ftp.get_file_data(f)
             if len(f_data) < 9:
@@ -147,6 +151,13 @@ class RecordingsTool(Gtk.Box):
 
             if f_type == "d":
                 model.append((self._icon, f_data[8], self._ftp.pwd()))
+                i += 1
+
+                if f_data[8] == self.DEFAULT_FOLDER:
+                    self._paths_view.set_cursor(Gtk.TreePath(i))
+                    self._app.send_http_request(HttpAPI.Request.RECORDINGS,
+                                                f"{self.DEFAULT_PATH}/{self.DEFAULT_FOLDER}",
+                                                self.update_recordings_data)
 
     def on_path_activated(self, view, path, column):
         row = view.get_model()[path][:]
@@ -158,8 +169,8 @@ class RecordingsTool(Gtk.Box):
         if not target or event.button != Gdk.BUTTON_PRIMARY:
             return
 
-        if event.get_event_type() == Gdk.EventType.DOUBLE_BUTTON_PRESS:
-            self.init_paths(self._paths_view.get_model()[target[0]][1])
+        # if event.get_event_type() == Gdk.EventType.DOUBLE_BUTTON_PRESS:
+        #     self.init_paths(self._paths_view.get_model()[target[0]][1])
 
     @run_idle
     def update_recordings_data(self, recordings):
@@ -187,25 +198,93 @@ class RecordingsTool(Gtk.Box):
 
     def on_recording_remove(self, action=None, value=None):
         """ Removes recordings via FTP. """
+        if not self._ftp:
+            return
+
         model, paths = self._rec_view.get_selection().get_selected_rows()
         if not paths:
             self._app.show_error_message("No selected item!")
             return
-
         if show_dialog(DialogType.QUESTION, self._app.app_window) != Gtk.ResponseType.OK:
             return
 
         paths = get_base_paths(paths, model)
         model = get_base_model(model)
 
-        if paths and self._ftp:
-            for file, itr in ((model[p][-1].get("e2filename", ""), model.get_iter(p)) for p in paths):
-                resp = self._ftp.delete_file(file)
-                if resp.startswith("2"):
-                    GLib.idle_add(model.remove, itr)
-                else:
-                    self._app.show_error_message(resp)
-                    break
+        for file, itr in ((model[p][-1].get("e2filename", ""), model.get_iter(p)) for p in paths):
+            resp = self._ftp.delete_file(file)
+            if resp.startswith("2"):
+                GLib.idle_add(model.remove, itr)
+            else:
+                self._app.show_error_message(resp)
+                return
+
+            metafiles = self.get_recording_metafiles(file)
+            for meta in metafiles:
+                self._ftp.delete_file(meta)
+
+        dir_path = self._paths_view.get_selection().get_selected_rows()[1]
+        self.on_path_activated(self._paths_view, dir_path[0], None)
+
+    def get_recording_metafiles(self, main_file):
+        sep = '.'
+        yield sep.join((main_file, 'ap'))
+        yield sep.join((main_file, 'cuts'))
+        yield sep.join((main_file, 'meta'))
+        yield sep.join((main_file, 'sc'))
+        yield sep.join((main_file.rsplit(sep, 1)[0], 'eit'))
+
+    def on_recording_download(self, action=None, value=None):
+        """ Downloads recording via FTP. """
+        model, paths = self._rec_view.get_selection().get_selected_rows()
+        if len(paths) != 1:
+            self._app.show_error_message("Please select one item.")
+            return
+
+        if not self._ftp:
+            return
+
+        paths = get_base_paths(paths, model)
+        model = get_base_model(model)
+
+        it = model.get_iter(paths)
+        file_source = model[it][-1].get("e2filename", "")
+
+        dialog = Gtk.FileChooserNative.new("Download file", self._app.app_window, Gtk.FileChooserAction.SAVE)
+        dialog.set_modal(True)
+        ff = Gtk.FileFilter()
+        ff.set_name("Transport stream")
+        ff.add_pattern("*.ts")
+        dialog.add_filter(ff)
+        dialog.set_current_folder(f"{os.path.expanduser('~')}/Downloads")
+        dialog.set_current_name(os.path.basename(file_source))
+        response = dialog.run()
+
+        if response != Gtk.ResponseType.ACCEPT:
+            return
+
+        file_target = dialog.get_filename()
+        dialog.destroy()
+
+        self.download_file(file_source, file_target)
+
+    @run_task
+    def download_file(self, file_source, file_target):
+        self._app.show_info_message(f"Downloading '{file_target.rsplit(os.sep, 1)[1]}'...", Gtk.MessageType.WARNING)
+
+        try:
+            with open(file_target, 'wb') as f:
+                resp = self._ftp.retrbinary('RETR %s' % file_source, f.write)
+        except all_errors as e:
+            log(e)
+            self._app.show_error_message(str(e))
+            return
+
+        if not resp.startswith("2"):
+            self._app.show_error_message(resp)
+            return
+
+        self._app.show_info_message(f"Download finished: '{file_target}'", Gtk.MessageType.INFO)
 
     def on_recordings_model_changed(self, model, path, itr=None):
         self._recordings_count_label.set_text(str(len(model)))

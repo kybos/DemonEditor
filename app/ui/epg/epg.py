@@ -47,7 +47,7 @@ from app.settings import SEP, EpgSource
 from app.tools.epg import EPG, ChannelsParser, EpgEvent, XmlTvReader
 from app.ui.dialogs import get_message, show_dialog, DialogType, get_builder
 from app.ui.timers import TimerTool
-from ..main_helper import on_popup_menu, update_entry_data
+from ..main_helper import on_popup_menu, update_entry_data, get_event_description
 from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, IS_GNOME_SESSION, Page
 
 
@@ -269,17 +269,22 @@ class EpgTool(Gtk.Box):
         self.epg_filter_mark(self._filter_entry)
         self._app.wait_dialog.hide()
 
+    # @staticmethod
+    # def get_event_description(event):
+    #     desc = event.get("e2eventdescription", "") or ""
+    #     desc_x = event.get("e2eventdescriptionextended", "") or ""
+    #     if desc != "" and desc_x != "":
+    #         desc += "\n" + desc_x
+    #     elif desc_x != "":
+    #         desc = desc_x
+    #     return desc
+
     @staticmethod
     def get_event(event, show_day=True):
         t_str = f"{'%a, ' if show_day else ''}%x, %H:%M"
         title = event.get("e2eventtitle", "") or ""
-        desc = event.get("e2eventdescription", "") or ""
 
-        desc_x = event.get("e2eventdescriptionextended", "") or ""
-        if desc != "" and desc_x != "":
-            desc += "\n" + desc_x
-        elif desc_x != "":
-            desc = desc_x
+        desc = get_event_description(event)
 
         start = int(event.get("e2eventstart", "0"))
         start_time = datetime.fromtimestamp(start)

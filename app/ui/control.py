@@ -62,6 +62,7 @@ class ControlTool(Gtk.Box):
         self._screenshot_button_box = builder.get_object("screenshot_button_box")
         self._screenshot_check_button = builder.get_object("screenshot_check_button")
         self._screenshot_check_button.bind_property("active", self._screenshot_area, "visible")
+        self._screenshot_export_button = builder.get_object("screenshot_export_button")
         self._snr_value_label = builder.get_object("snr_value_label")
         self._ber_value_label = builder.get_object("ber_value_label")
         self._agc_value_label = builder.get_object("agc_value_label")
@@ -98,7 +99,16 @@ class ControlTool(Gtk.Box):
         app.set_action("on_blue", lambda a, v: self.on_remote_action(HttpAPI.Remote.BLUE))
         app.set_action("on_tv", lambda a, v: self.on_remote_action(HttpAPI.Remote.TV))
         app.set_action("on_radio", lambda a, v: self.on_remote_action(HttpAPI.Remote.RADIO))
-        app.set_action("on_refresh", lambda a, v: self.on_remote_action(HttpAPI.Request.GRUB))
+        app.set_action("on_one", lambda a, v: self.on_remote_action(HttpAPI.Remote.ONE))
+        app.set_action("on_two", lambda a, v: self.on_remote_action(HttpAPI.Remote.TWO))
+        app.set_action("on_three", lambda a, v: self.on_remote_action(HttpAPI.Remote.THREE))
+        app.set_action("on_four", lambda a, v: self.on_remote_action(HttpAPI.Remote.FOUR))
+        app.set_action("on_five", lambda a, v: self.on_remote_action(HttpAPI.Remote.FIVE))
+        app.set_action("on_six", lambda a, v: self.on_remote_action(HttpAPI.Remote.SIX))
+        app.set_action("on_seven", lambda a, v: self.on_remote_action(HttpAPI.Remote.SEVEN))
+        app.set_action("on_eight", lambda a, v: self.on_remote_action(HttpAPI.Remote.EIGHT))
+        app.set_action("on_nine", lambda a, v: self.on_remote_action(HttpAPI.Remote.NINE))
+        app.set_action("on_zero", lambda a, v: self.on_remote_action(HttpAPI.Remote.ZERO))
         # Playback.
         app.set_action("on_prev_media", lambda a, v: self.on_player_action(HttpAPI.Request.PLAYER_PREV))
         app.set_action("on_play_media", lambda a, v: self.on_player_action(HttpAPI.Request.PLAYER_PLAY))
@@ -191,18 +201,18 @@ class ControlTool(Gtk.Box):
 
     def on_screenshot_all(self, action, value=None):
         if self._app.http_api:
-            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=all" if self._app.http_api.is_owif else "d=",
-                                        self.on_screenshot)
+            fn = self.on_screenshot if self._screenshot_export_button.get_active() else self.update_screenshot
+            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=all" if self._app.http_api.is_owif else "d=", fn)
 
     def on_screenshot_video(self, action, value=None):
         if self._app.http_api:
-            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=video" if self._app.http_api.is_owif else "v=",
-                                        self.on_screenshot)
+            fn = self.on_screenshot if self._screenshot_export_button.get_active() else self.update_screenshot
+            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=video" if self._app.http_api.is_owif else "v=", fn)
 
     def on_screenshot_osd(self, action, value=None):
         if self._app.http_api:
-            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=osd" if self._app.http_api.is_owif else "o=",
-                                        self.on_screenshot)
+            fn = self.on_screenshot if self._screenshot_export_button.get_active() else self.update_screenshot
+            self._app.send_http_request(HttpAPI.Request.GRUB, "mode=osd" if self._app.http_api.is_owif else "o=", fn)
 
     @run_task
     def on_screenshot(self, data):

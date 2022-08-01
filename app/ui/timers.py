@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from urllib.parse import quote
 
-from app.ui.main_helper import on_popup_menu
+from app.ui.main_helper import on_popup_menu, get_event_description
 from .dialogs import get_builder, get_message, show_dialog, DialogType
 from .uicommons import Gtk, Gdk, GLib, UI_RESOURCES_PATH, Page, Column, KeyboardKey, IS_GNOME_SESSION, MOD_MASK
 from ..commons import run_idle, log
@@ -119,6 +119,7 @@ class TimerTool(Gtk.Box):
                 self.set_timer_for_edit()
             elif self._action is TimerTool.TimerAction.EVENT:
                 self.set_timer_from_event_data()
+                self._action = TimerTool.TimerAction.ADD
             else:
                 log(f"{__class__.__name__} error: No action set for timer!")
 
@@ -161,7 +162,7 @@ class TimerTool(Gtk.Box):
                 args.append(f"tags={''}")
                 args.append(f"eit={'0'}")
                 args.append(f"disabled={t_data.get('disabled', '1')}")
-                args.append(f"justplay={t_data.get('justplay', '1')}")
+                args.append(f"justplay={t_data.get('justplay', '0')}")
                 args.append(f"afterevent={t_data.get('afterevent', '0')}")
                 args.append(f"repeated={TimerTool.get_repetition_flags(self._days_buttons)}")
 
@@ -210,6 +211,7 @@ class TimerTool(Gtk.Box):
             self._timer_ends_entry.set_text(f"{date.year}-{date.month:02d}-{date.day:02d} {hour:02d}:{minute:02d}")
 
         def set_timer_for_add(self):
+            self._timer_enabled_switch.set_active(True)
             self._timer_service_entry.set_text(self._timer_data.get("e2servicename", ""))
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2servicereference", ""))
             date = datetime.now()
@@ -235,14 +237,13 @@ class TimerTool(Gtk.Box):
             TimerTool.set_repetition_flags(int(self._timer_data.get("e2repeated", "0")), self._days_buttons)
 
         def set_timer_from_event_data(self):
+            self._timer_enabled_switch.set_active(True)
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", ""))
-            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescriptionextended", "")
-                                            or self._timer_data.get("e2eventdescription", "") or "")
+            self._timer_desc_entry.set_text(get_event_description(self._timer_data))
+            # self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", "") or "")
             self._timer_service_entry.set_text(self._timer_data.get("e2eventservicename", ""))
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2eventservicereference", ""))
             self._timer_event_id_entry.set_text(self._timer_data.get("e2eventid", ""))
-            # self._timer_action_combo_box.set_active_id("1")
-            # self._timer_after_combo_box.set_active_id("3")
             start_time = int(self._timer_data.get("e2eventstart", "0"))
             self.set_time_data(start_time, start_time + int(self._timer_data.get("e2eventduration", "0")))
 

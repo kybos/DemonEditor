@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.2
+<!-- Generated with glade 3.22.1 
 
 The MIT License (MIT)
 
@@ -34,6 +34,11 @@ Author: Dmitriy Yefremov
   <!-- interface-description Enigma2 channel and satellites list editor. -->
   <!-- interface-copyright 2018-2022 Dmitriy Yefremov -->
   <!-- interface-authors Dmitriy Yefremov -->
+  <object class="GtkImage" id="download_menu_item_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save-as</property>
+  </object>
   <object class="GtkMenu" id="popup_menu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -46,6 +51,17 @@ Author: Dmitriy Yefremov
         <property name="use_stock">True</property>
         <signal name="activate" handler="on_recording_remove" swapped="no"/>
         <accelerator key="Delete" signal="activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImageMenuItem" id="download_menu_item">
+        <property name="label">Download</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="image">download_menu_item_image</property>
+        <property name="use_stock">False</property>
+        <signal name="activate" handler="on_recording_download" swapped="no"/>
+        <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
       </object>
     </child>
   </object>
@@ -161,6 +177,27 @@ Author: Dmitriy Yefremov
                         <property name="position">1</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkButton" id="recordings_download_button">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Download</property>
+                        <signal name="clicked" handler="on_recording_download" swapped="no"/>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-save-as</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -182,7 +219,6 @@ Author: Dmitriy Yefremov
                         <property name="primary_icon_name">edit-find-replace-symbolic</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="primary_icon_sensitive">False</property>
-                        <property name="visible" bind-source="recordings_filter_button" bind-property="active"/>
                         <signal name="search-changed" handler="on_recordings_filter_changed" swapped="no"/>
                       </object>
                       <packing>

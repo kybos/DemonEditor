@@ -49,6 +49,7 @@ popover .view {
 .yellow-button {
   background-image: none;
   background-color: yellow;
+  color: black;
 }
 
 .blue-button {
