@@ -285,7 +285,7 @@ class TimerTool(Gtk.Box):
         self._app.connect("page-changed", self.update_timer_list)
         # Icon.
         theme = Gtk.IconTheme.get_default()
-        icon = "alarm-symbolic"
+        icon = "appointment-soon"
         self._icon = theme.load_icon(icon, 16, 0) if theme.lookup_icon(icon, 16, 0) else None
 
         handlers = {"on_timer_add": self.on_timer_add,
