@@ -53,8 +53,10 @@ from app.ui.dialogs import translate, show_dialog, DialogType, get_builder, get_
 from app.ui.tasks import BGTaskWidget
 from app.ui.timers import TimerTool
 from ..main_helper import on_popup_menu, update_entry_data, scroll_to, update_toggle_model, update_filter_sat_positions, \
-    show_info_bar_message
+    show_info_bar_message, get_event_description
 from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, Page, HeaderBar
+
+from gi.overrides.Pango import Pango
 
 
 class RefsSource(Enum):
@@ -604,7 +606,7 @@ class EpgTool(Gtk.Box):
 
         handlers = {"on_epg_filter_changed": self.on_epg_filter_changed,
                     "on_epg_filter_toggled": self.on_epg_filter_toggled,
-                    "on_view_query_tooltip": self.on_view_query_tooltip,
+                    # "on_view_query_tooltip": self.on_view_query_tooltip,
                     "on_multi_epg_toggled": self.on_multi_epg_toggled,
                     "on_xmltv_toggled": self.on_xmltv_toggled,
                     "on_epg_press": self.on_epg_press,
@@ -640,7 +642,21 @@ class EpgTool(Gtk.Box):
         self._time_fmt = "%a %x - %H:%M"
         self._duration_fmt = f"%{'' if IS_WIN else '-'}Hh %Mm"
 
+        column = builder.get_object("epg_desc_column")
+        column.props.expand = False # ??? (with True it goes outside the container...)
+        column.props.max_width = 1 # ??? (setting max_width to any value seems the only way to make it work...)
+
+        cell_renderer = builder.get_object("epg_desc_renderer")
+        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
+        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
+
+        column.connect_after("notify::width", self.set_column_width, cell_renderer)
+
         self.show()
+
+    def set_column_width(self, column, event, renderer):
+        column_width = column.get_width()
+        renderer.props.wrap_width = column_width
 
     def on_data_open(self, app, page):
         if page is not Page.EPG:
@@ -773,8 +789,11 @@ class EpgTool(Gtk.Box):
     def get_event(event, show_day=True):
         s_name = event.get("e2eventservicename", "")
         title = event.get("e2eventtitle", "") or ""
-        desc = event.get("e2eventdescription", "") or ""
-        desc = desc.strip()
+        # desc = event.get("e2eventdescription", "") or ""
+        # desc = desc.strip()
+
+        desc = get_event_description(event)
+
         start, duration = int(event.get("e2eventstart", "0")), int(event.get("e2eventduration", "0"))
 
         return EpgEvent(s_name, title, start, start + duration, duration, desc, event)
@@ -813,26 +832,26 @@ class EpgTool(Gtk.Box):
             if active:
                 self._filter_entry.grab_focus()
 
-    def on_view_query_tooltip(self, view, x, y, keyboard_mode, tooltip):
-        dst = view.get_dest_row_at_pos(x, y)
-        if not dst:
-            return False
-
-        path, pos = dst
-        model = view.get_model()
-        data = model[path][-1]
-        if not data:
-            return False
-
-        desc = data.get("e2eventdescription", "") or ""
-        ext_desc = data.get("e2eventdescriptionextended", "") or ""
-        if not any((desc, ext_desc)):
-            return False
-
-        tooltip.set_text(ext_desc if ext_desc else desc)
-        view.set_tooltip_row(tooltip, path)
-
-        return True
+    # def on_view_query_tooltip(self, view, x, y, keyboard_mode, tooltip):
+    #     dst = view.get_dest_row_at_pos(x, y)
+    #     if not dst:
+    #         return False
+    #
+    #     path, pos = dst
+    #     model = view.get_model()
+    #     data = model[path][-1]
+    #     if not data:
+    #         return False
+    #
+    #     desc = data.get("e2eventdescription", "") or ""
+    #     ext_desc = data.get("e2eventdescriptionextended", "") or ""
+    #     if not any((desc, ext_desc)):
+    #         return False
+    #
+    #     tooltip.set_text(ext_desc if ext_desc else desc)
+    #     view.set_tooltip_row(tooltip, path)
+    #
+    #     return True
 
     def on_multi_epg_toggled(self, button):
         if button.get_active():

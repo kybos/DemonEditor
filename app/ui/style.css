@@ -62,6 +62,7 @@ paned.vertical > separator {
 .yellow-button {
   background-image: none;
   background-color: yellow;
+  color: black;
 }
 
 .blue-button {

@@ -28,7 +28,8 @@
 
 """ Helper module for the GUI. """
 
-__all__ = ("insert_marker", "move_items", "rename", "ViewTarget", "set_flags", "locate_in_services",
+__all__ = ("get_event_description",
+           "insert_marker", "move_items", "rename", "ViewTarget", "set_flags", "locate_in_services",
            "scroll_to", "get_base_model", "get_base_paths", "copy_reference", "assign_picons", "remove_picon",
            "is_only_one_item_selected", "gen_bouquets", "BqGenType", "get_selection", "get_service_reference",
            "get_model_data", "remove_all_unused_picons", "get_picon_pixbuf", "get_base_itrs", "get_iptv_url",
@@ -53,6 +54,19 @@ from app.eparser.enigma.bouquets import BqServiceType
 from app.settings import SettingsType, SEP, IS_WIN, IS_DARWIN, IS_LINUX
 from .dialogs import show_dialog, DialogType, translate
 from .uicommons import ViewTarget, BqGenType, Gtk, Gdk, HIDE_ICON, LOCKED_ICON, KeyboardKey, Column
+
+
+def get_event_description(event):
+    """ Create full description from epg data """
+    desc = event.get("e2eventdescription", "") or ""
+    desc_x = event.get("e2eventdescriptionextended", "") or ""
+    # desc = desc.strip()
+    # desc_x = desc_x.strip()
+    if desc != "" and desc_x != "":
+        desc += "\n" + desc_x
+    elif desc_x != "":
+        desc = desc_x
+    return desc.replace('\x8a', '\x0a')
 
 
 # ***************** Markers *******************#

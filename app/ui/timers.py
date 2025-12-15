@@ -31,12 +31,14 @@ from datetime import datetime, timedelta
 from enum import Enum
 from urllib.parse import quote
 
-from app.ui.main_helper import on_popup_menu
+from app.ui.main_helper import on_popup_menu, get_event_description
 from .dialogs import get_builder, translate, show_dialog, DialogType, BaseDialog
 from .uicommons import Gtk, Gdk, GLib, UI_RESOURCES_PATH, Page, Column, KeyboardKey, MOD_MASK
 from ..commons import run_idle, log
 from ..connections import HttpAPI
 from ..eparser.ecommons import BqServiceType
+
+from gi.overrides.Pango import Pango
 
 
 class TimerTool(Gtk.Box):
@@ -229,11 +231,12 @@ class TimerTool(Gtk.Box):
 
         def set_timer_from_event_data(self):
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", None) or "")
-            self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", None) or "")
+            # self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", None) or "")
+            self._timer_desc_entry.set_text(get_event_description(self._timer_data))
             self._timer_service_entry.set_text(self._timer_data.get("e2eventservicename", None) or "")
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2eventservicereference", None) or "")
             self._timer_event_id_entry.set_text(self._timer_data.get("e2eventid", None) or "")
-            self._timer_action_combo_box.set_active_id("1")
+            # self._timer_action_combo_box.set_active_id("1")
             self._timer_after_combo_box.set_active_id("3")
             start_time = int(self._timer_data.get("e2eventstart", "0") or "0")
             self.set_time_data(start_time, start_time + int(self._timer_data.get("e2eventduration", "0") or "0"))
@@ -323,7 +326,23 @@ class TimerTool(Gtk.Box):
         self._view.drag_dest_add_text_targets()
 
         self.pack_start(builder.get_object("timers_frame"), True, True, 0)
+        # self.show()
+
+        column = builder.get_object("timer_desc_column")
+        column.props.expand = False # ??? (with True it goes outside the container...)
+        column.props.max_width = 1 # ??? (setting max_width to any value seems the only way to make it work...)
+
+        cell_renderer = builder.get_object("timer_desc_renderer")
+        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
+        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
+
+        column.connect_after("notify::width", self.set_column_width, cell_renderer)
+
         self.show()
+
+    def set_column_width(self, column, event, renderer):
+        column_width = column.get_width()
+        renderer.props.wrap_width = column_width
 
     def update_timer_list(self, app, page):
         if page is Page.TIMERS:
@@ -341,7 +360,7 @@ class TimerTool(Gtk.Box):
     def get_timer_row(self, timer):
         disabled = self._icon if timer.get("e2disabled", "0") == "0" else None
         name = timer.get("e2name", "") or ""
-        description = timer.get("e2description", "") or ""
+        description = timer.get("e2description", "").replace('\x8a', '\x0a') or ""
         service = timer.get("e2servicename", "") or ""
         start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
         end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))

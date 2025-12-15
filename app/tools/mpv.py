@@ -1182,7 +1182,7 @@ class MPV(object):
 
     def loadfile(self, filename, mode='replace', **options):
         """Mapped mpv loadfile command, see man mpv(1)."""
-        self.command('loadfile', filename.encode(fs_enc), mode, MPV._encode_options(options))
+        self.command('loadfile', filename.encode(fs_enc), mode, -1, MPV._encode_options(options))
 
     def loadlist(self, playlist, mode='replace'):
         """Mapped mpv loadlist command, see man mpv(1)."""

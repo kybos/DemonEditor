@@ -1141,7 +1141,7 @@ Author: Dmitriy Yefremov
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="timers_screlled_window">
+              <object class="GtkScrolledWindow" id="timers_scrolled_window">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="shadow-type">in</property>
@@ -1152,7 +1152,7 @@ Author: Dmitriy Yefremov
                     <property name="model">timer_model</property>
                     <property name="rubber-banding">True</property>
                     <property name="enable-grid-lines">both</property>
-                    <property name="tooltip-column">3</property>
+<!--                    <property name="tooltip-column">3</property>-->
                     <signal name="button-press-event" handler="on_timers_press" object="popup_menu" swapped="no"/>
                     <signal name="cursor-changed" handler="on_timer_cursor_changed" swapped="no"/>
                     <signal name="drag-data-received" handler="on_timers_drag_data_received" swapped="no"/>
@@ -1165,7 +1165,7 @@ Author: Dmitriy Yefremov
                     <child>
                       <object class="GtkTreeViewColumn" id="timer_name_column">
                         <property name="resizable">True</property>
-                        <property name="fixed-width">150</property>
+                        <property name="fixed-width">200</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Name</property>
                         <property name="alignment">0.5</property>
@@ -1190,7 +1190,7 @@ Author: Dmitriy Yefremov
                     <child>
                       <object class="GtkTreeViewColumn" id="timer_service_column">
                         <property name="resizable">True</property>
-                        <property name="fixed-width">150</property>
+                        <property name="fixed-width">100</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Service</property>
                         <property name="alignment">0.5</property>
@@ -1208,7 +1208,7 @@ Author: Dmitriy Yefremov
                     <child>
                       <object class="GtkTreeViewColumn" id="timer_time_column">
                         <property name="resizable">True</property>
-                        <property name="fixed-width">210</property>
+                        <property name="fixed-width">200</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Time</property>
                         <property name="alignment">0.5</property>

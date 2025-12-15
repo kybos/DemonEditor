@@ -29,6 +29,7 @@
 """ Receiver control module via HTTP API. """
 import os
 import re
+import time
 
 from gi.repository import GLib
 
@@ -207,17 +208,20 @@ class ControlTool(Gtk.Box):
     def on_screenshot_all(self, action, value=None):
         if self._app.http_api:
             self._app.send_http_request(HttpAPI.Request.GRUB, "mode=all" if self._app.http_api.is_owif else "d=",
-                                        self.on_screenshot)
+                                        self.update_screenshot)
+                                        # self.on_screenshot)
 
     def on_screenshot_video(self, action, value=None):
         if self._app.http_api:
             self._app.send_http_request(HttpAPI.Request.GRUB, "mode=video" if self._app.http_api.is_owif else "v=",
-                                        self.on_screenshot)
+                                        self.update_screenshot)
+                                        # self.on_screenshot)
 
     def on_screenshot_osd(self, action, value=None):
         if self._app.http_api:
             self._app.send_http_request(HttpAPI.Request.GRUB, "mode=osd" if self._app.http_api.is_owif else "o=",
-                                        self.on_screenshot)
+                                        self.update_screenshot)
+                                        # self.on_screenshot)
 
     @run_task
     def on_screenshot(self, data):
@@ -278,7 +282,7 @@ class ControlTool(Gtk.Box):
     def update_network(self):
         pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
 
-        ips = [match for match in re.findall(pattern, os.popen("arp -a").read())]
+        ips = [match for match in re.findall(pattern, os.popen("ip neigh show").read())]
         for ip in ips:
             if not self._network_button.get_active():
                 break

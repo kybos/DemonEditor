@@ -35,16 +35,19 @@ from urllib.parse import quote
 
 from app.ui.tasks import BGTaskWidget
 from .dialogs import get_builder, show_dialog, DialogType
-from .main_helper import get_base_paths, get_base_model, on_popup_menu
+from .main_helper import get_base_paths, get_base_model, on_popup_menu, get_event_description
 from .uicommons import Gtk, Gdk, GLib, UI_RESOURCES_PATH, Column, KeyboardKey, Page
 from ..commons import run_task, run_idle, log
 from ..connections import UtfFTP, HttpAPI
 from ..settings import IS_DARWIN, PlayStreamsMode
 
+from gi.overrides.Pango import Pango
+
 
 class RecordingsTool(Gtk.Box):
     ROOT = ".."
     DEFAULT_PATH = "/hdd"
+    DEFAULT_FOLDER = "movie"
 
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -88,17 +91,32 @@ class RecordingsTool(Gtk.Box):
         self.pack_start(builder.get_object("recordings_box"), True, True, 0)
         self._rec_view.get_model().set_sort_func(3, self.time_sort_func, 3)
 
-        srv_column = builder.get_object("rec_service_column")
-        renderer = builder.get_object("rec_log_renderer")
-        size = self._app.app_settings.list_picon_size
-        renderer.set_fixed_size(size, size * 0.65)
-        srv_column.set_cell_data_func(renderer, self.logo_data_func)
+        if self._settings.display_picons:
+            srv_column = builder.get_object("rec_service_column")
+            renderer = builder.get_object("rec_log_renderer")
+            size = self._app.app_settings.list_picon_size
+            renderer.set_fixed_size(size, size * 0.65)
+            srv_column.set_cell_data_func(renderer, self.logo_data_func)
 
         if self._settings.alternate_layout:
             self.on_layout_changed(app, True)
 
+        column = builder.get_object("rec_desc_column")
+        column.props.expand = False  # ??? (with True it goes outside the container...)
+        column.props.max_width = 1  # ??? (setting max_width to any value seems the only way to make it work...)
+
+        cell_renderer = builder.get_object("rec_desc_renderer")
+        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
+        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
+
+        column.connect_after("notify::width", self.set_column_width, cell_renderer)
+
         self.init()
         self.show()
+
+    def set_column_width(self, column, event, renderer):
+        column_width = column.get_width()
+        renderer.props.wrap_width = column_width
 
     def clear_data(self):
         self._model.clear()
@@ -177,6 +195,7 @@ class RecordingsTool(Gtk.Box):
         model.clear()
         model.append((None, self.ROOT, self._ftp.pwd()))
 
+        i = 0
         for f in files:
             f_data = self._ftp.get_file_data(f)
             if len(f_data) < 9:
@@ -187,6 +206,13 @@ class RecordingsTool(Gtk.Box):
 
             if f_type == "d":
                 model.append((self._icon, f_data[8], self._ftp.pwd()))
+
+                i += 1
+                if f_data[8] == self.DEFAULT_FOLDER:
+                    self._paths_view.set_cursor(Gtk.TreePath(i))
+                    self._app.send_http_request(HttpAPI.Request.RECORDINGS,
+                                                f"{self.DEFAULT_PATH}/{self.DEFAULT_FOLDER}",
+                                                self.update_recordings_data)
 
     def on_path_activated(self, view, path, column):
         row = view.get_model()[path][:]
@@ -208,13 +234,25 @@ class RecordingsTool(Gtk.Box):
         list(map(self._model.append, (self.get_recordings_row(r) for r in recs)))
         list(map(self.get_rec_service_logo, recs))
 
+    def get_description(self, rec):
+        desc = rec.get("e2description", "") or ""
+        desc_x = rec.get("e2descriptionextended", "") or ""
+        # desc = desc.strip()
+        # desc_x = desc_x.strip()
+        if desc != "" and desc_x != "":
+            desc += "\n" + desc_x
+        elif desc_x != "":
+            desc = desc_x
+        return desc.replace('\x8a', '\x0a')
+
     def get_recordings_row(self, rec):
-        service = rec.get("e2servicename")
+        service = rec.get("e2servicename") or "n/a"
         title = rec.get("e2title", "")
         r_time = datetime.fromtimestamp(int(rec.get("e2time", "0"))).strftime("%a, %x, %H:%M")
         length = rec.get("e2length", "0")
         file = rec.get("e2filename", "")
-        desc = rec.get("e2description", "")
+        # desc = rec.get("e2description", "")
+        desc = self.get_description(rec)
 
         return None, service, title, r_time, length, file, desc, rec
 
