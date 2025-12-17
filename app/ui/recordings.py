@@ -41,8 +41,6 @@ from ..commons import run_task, run_idle, log
 from ..connections import UtfFTP, HttpAPI
 from ..settings import IS_DARWIN, PlayStreamsMode
 
-from gi.overrides.Pango import Pango
-
 
 class RecordingsTool(Gtk.Box):
     ROOT = ".."
@@ -102,21 +100,19 @@ class RecordingsTool(Gtk.Box):
             self.on_layout_changed(app, True)
 
         column = builder.get_object("rec_desc_column")
-        column.props.expand = False  # ??? (with True it goes outside the container...)
-        column.props.max_width = 1  # ??? (setting max_width to any value seems the only way to make it work...)
-
         cell_renderer = builder.get_object("rec_desc_renderer")
-        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
-        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
-
         column.connect_after("notify::width", self.set_column_width, cell_renderer)
 
         self.init()
         self.show()
 
     def set_column_width(self, column, event, renderer):
-        column_width = column.get_width()
-        renderer.props.wrap_width = column_width
+        new_width = column.get_width()
+        old_width = renderer.get_property("wrap-width")
+
+        if new_width != old_width:
+            renderer.set_property("wrap-width", new_width)
+            column.queue_resize()
 
     def clear_data(self):
         self._model.clear()
@@ -237,8 +233,8 @@ class RecordingsTool(Gtk.Box):
     def get_description(self, rec):
         desc = rec.get("e2description", "") or ""
         desc_x = rec.get("e2descriptionextended", "") or ""
-        # desc = desc.strip()
-        # desc_x = desc_x.strip()
+        desc = desc.strip()
+        desc_x = desc_x.strip()
         if desc != "" and desc_x != "":
             desc += "\n" + desc_x
         elif desc_x != "":
@@ -307,6 +303,21 @@ class RecordingsTool(Gtk.Box):
         paths = get_base_paths(paths, model)
         model = get_base_model(model)
         to_delete = []
+
+        try:
+            self._ftp.voidcmd("NOOP")
+        except all_errors:
+        # except (self._ftp.Error, OSError):
+            try:
+                if self._ftp:
+                    self._ftp.close()
+
+                host, port = self._settings.host, self._settings.port
+                self._ftp = UtfFTP(host=host, port=port, user=self._settings.user, passwd=self._settings.password)
+                self._ftp.encoding = "utf-8"
+            except all_errors:
+                self._app.show_error_message("FTP Connection Error")
+                return
 
         if paths and self._ftp:
             for file, itr in ((model[p][-1].get("e2filename", ""), model.get_iter(p)) for p in paths):

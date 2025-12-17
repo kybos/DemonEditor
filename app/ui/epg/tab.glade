@@ -333,13 +333,14 @@ Author: Dmitriy Yefremov
                 <property name="shadow-type">in</property>
                 <child>
                   <object class="GtkTreeView" id="epg_view">
+<!--                    <property name="hexpand">False</property>-->
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="model">epg_sort_model</property>
 <!--                    <property name="fixed-height-mode">True</property>-->
                     <property name="rubber-banding">True</property>
                     <property name="enable-grid-lines">both</property>
-                    <property name="tooltip-column">6</property>
+                    <property name="tooltip-column">1</property>
                     <signal name="button-press-event" handler="on_epg_press" swapped="no"/>
 <!--                    <signal name="query-tooltip" handler="on_view_query_tooltip" swapped="no"/>-->
                     <child internal-child="selection">
@@ -353,7 +354,7 @@ Author: Dmitriy Yefremov
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
                         <property name="fixed-width">100</property>
-                        <property name="min-width">40</property>
+                        <property name="min-width">50</property>
                         <property name="title" translatable="yes">Service</property>
                         <property name="alignment">0.5</property>
                         <property name="sort-column-id">0</property>
@@ -371,7 +372,8 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_title_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="min-width">150</property>
+                        <property name="fixed-width">200</property>
+                        <property name="min-width">50</property>
                         <property name="title" translatable="yes">Title</property>
                         <property name="alignment">0.49000000953674316</property>
                         <property name="sort-column-id">1</property>
@@ -390,6 +392,7 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_start_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
+                        <property name="fixed-width">100</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Start time</property>
                         <property name="alignment">0.49000000953674316</property>
@@ -410,6 +413,7 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_end_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
+                        <property name="fixed-width">100</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">End time</property>
                         <property name="alignment">0.49000000953674316</property>
@@ -430,7 +434,7 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_length_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="fixed-width">100</property>
+                        <property name="fixed-width">80</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Length</property>
                         <property name="alignment">0.49000000953674316</property>
@@ -448,15 +452,17 @@ Author: Dmitriy Yefremov
                     </child>
                     <child>
                       <object class="GtkTreeViewColumn" id="epg_desc_column">
+                        <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="min-width">100</property>
+                        <property name="fixed-width">100</property>
+                        <property name="min-width">50</property>
                         <property name="title" translatable="yes">Description</property>
-                        <property name="expand">True</property>
-                        <property name="alignment">0.49000000953674316</property>
+<!--                        <property name="expand">True</property>-->
+                        <property name="alignment">0.5</property>
                         <property name="sort-column-id">5</property>
                         <child>
                           <object class="GtkCellRendererText" id="epg_desc_renderer">
-                            <property name="ellipsize">end</property>
+                            <property name="wrap_mode">word</property>
                           </object>
                           <attributes>
                             <attribute name="text">5</attribute>

@@ -310,13 +310,14 @@ Author: Dmitriy Yefremov
                                 <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
                                 <property name="fixed-width">100</property>
+                                <property name="min-width">50</property>
                                 <property name="title" translatable="yes">Service</property>
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">1</property>
                                 <child>
                                   <object class="GtkCellRendererPixbuf" id="rec_log_renderer">
-<!--                                    <property name="xpad">5</property>-->
-<!--                                    <property name="ypad">2</property>-->
+                                    <property name="xpad">0</property>
+                                    <property name="ypad">0</property>
                                   </object>
                                   <attributes>
                                     <attribute name="pixbuf">0</attribute>
@@ -336,14 +337,14 @@ Author: Dmitriy Yefremov
                               <object class="GtkTreeViewColumn" id="rec_title_column">
                                 <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
-                                <property name="fixed-width">240</property>
+                                <property name="fixed-width">200</property>
+                                <property name="min-width">50</property>
                                 <property name="title" translatable="yes">Title</property>
-<!--                                <property name="expand">True</property>-->
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">2</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="rec_title_renderer">
-                                    <property name="xpad">5</property>
+<!--                                    <property name="xpad">5</property>-->
                                     <property name="ellipsize">end</property>
                                   </object>
                                   <attributes>
@@ -357,7 +358,7 @@ Author: Dmitriy Yefremov
                                 <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
                                 <property name="fixed-width">160</property>
-                                <property name="min-width">100</property>
+                                <property name="min-width">50</property>
                                 <property name="title" translatable="yes">Time</property>
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">3</property>
@@ -374,8 +375,10 @@ Author: Dmitriy Yefremov
                             </child>
                             <child>
                               <object class="GtkTreeViewColumn" id="rec_len_column">
+                                <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
-                                <property name="min-width">60</property>
+                                <property name="fixed-width">80</property>
+                                <property name="min-width">50</property>
                                 <property name="title" translatable="yes">Length</property>
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">4</property>
@@ -393,9 +396,8 @@ Author: Dmitriy Yefremov
                               <object class="GtkTreeViewColumn" id="rec_file_column">
                                 <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
-                                <property name="fixed-width">60</property>
+                                <property name="fixed-width">50</property>
                                 <property name="title" translatable="yes">File</property>
-                                <property name="expand">True</property>
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">5</property>
                                 <property name="visible">False</property>
@@ -413,13 +415,15 @@ Author: Dmitriy Yefremov
                               <object class="GtkTreeViewColumn" id="rec_desc_column">
                                 <property name="resizable">True</property>
                                 <property name="sizing">fixed</property>
+                                <property name="fixed-width">100</property>
+                                <property name="min-width">50</property>
                                 <property name="title" translatable="yes">Description</property>
-                                <property name="expand">True</property>
+<!--                                <property name="expand">False</property>-->
                                 <property name="alignment">0.5</property>
                                 <property name="sort-column-id">6</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="rec_desc_renderer">
-                                    <property name="ellipsize">end</property>
+                                    <property name="wrap-mode">word</property>
                                   </object>
                                   <attributes>
                                     <attribute name="text">6</attribute>

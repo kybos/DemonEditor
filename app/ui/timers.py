@@ -38,8 +38,6 @@ from ..commons import run_idle, log
 from ..connections import HttpAPI
 from ..eparser.ecommons import BqServiceType
 
-from gi.overrides.Pango import Pango
-
 
 class TimerTool(Gtk.Box):
     TIME_STR = "%Y-%m-%d %H:%M"
@@ -326,23 +324,20 @@ class TimerTool(Gtk.Box):
         self._view.drag_dest_add_text_targets()
 
         self.pack_start(builder.get_object("timers_frame"), True, True, 0)
-        # self.show()
 
         column = builder.get_object("timer_desc_column")
-        column.props.expand = False # ??? (with True it goes outside the container...)
-        column.props.max_width = 1 # ??? (setting max_width to any value seems the only way to make it work...)
-
         cell_renderer = builder.get_object("timer_desc_renderer")
-        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
-        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
-
         column.connect_after("notify::width", self.set_column_width, cell_renderer)
 
         self.show()
 
     def set_column_width(self, column, event, renderer):
-        column_width = column.get_width()
-        renderer.props.wrap_width = column_width
+        new_width = column.get_width()
+        old_width = renderer.get_property("wrap-width")
+
+        if new_width != old_width:
+            renderer.set_property("wrap-width", new_width)
+            column.queue_resize()
 
     def update_timer_list(self, app, page):
         if page is Page.TIMERS:

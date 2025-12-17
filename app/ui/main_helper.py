@@ -60,8 +60,8 @@ def get_event_description(event):
     """ Create full description from epg data """
     desc = event.get("e2eventdescription", "") or ""
     desc_x = event.get("e2eventdescriptionextended", "") or ""
-    # desc = desc.strip()
-    # desc_x = desc_x.strip()
+    desc = desc.strip()
+    desc_x = desc_x.strip()
     if desc != "" and desc_x != "":
         desc += "\n" + desc_x
     elif desc_x != "":

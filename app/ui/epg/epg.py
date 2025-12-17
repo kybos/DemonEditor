@@ -56,8 +56,6 @@ from ..main_helper import on_popup_menu, update_entry_data, scroll_to, update_to
     show_info_bar_message, get_event_description
 from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, Page, HeaderBar
 
-from gi.overrides.Pango import Pango
-
 
 class RefsSource(Enum):
     SERVICES = 0
@@ -643,20 +641,18 @@ class EpgTool(Gtk.Box):
         self._duration_fmt = f"%{'' if IS_WIN else '-'}Hh %Mm"
 
         column = builder.get_object("epg_desc_column")
-        column.props.expand = False # ??? (with True it goes outside the container...)
-        column.props.max_width = 1 # ??? (setting max_width to any value seems the only way to make it work...)
-
         cell_renderer = builder.get_object("epg_desc_renderer")
-        cell_renderer.props.ellipsize = Pango.EllipsizeMode.NONE
-        cell_renderer.props.wrap_mode = Pango.WrapMode.WORD
-
         column.connect_after("notify::width", self.set_column_width, cell_renderer)
 
         self.show()
 
     def set_column_width(self, column, event, renderer):
-        column_width = column.get_width()
-        renderer.props.wrap_width = column_width
+        new_width = column.get_width()
+        old_width = renderer.get_property("wrap-width")
+
+        if new_width != old_width:
+            renderer.set_property("wrap-width", new_width)
+            column.queue_resize()
 
     def on_data_open(self, app, page):
         if page is not Page.EPG:
@@ -810,13 +806,12 @@ class EpgTool(Gtk.Box):
         value = datetime.utcfromtimestamp(model.get_value(itr, Column.EPG_LENGTH))
         renderer.set_property("text", value.strftime(self._duration_fmt))
 
-    @run_with_delay(2)
+    # @run_with_delay(1)
     def on_epg_filter_changed(self, entry):
         self._filter_model.refilter()
 
     def on_epg_filter_toggled(self, button):
-        if not button.get_active():
-            self._filter_entry.set_text("")
+        self._filter_entry.grab_focus() if button.get_active() else self._filter_entry.set_text("")
 
     def epg_filter_function(self, model, itr, data):
         txt = self._filter_entry.get_text().upper()
