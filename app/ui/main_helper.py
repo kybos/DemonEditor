@@ -28,7 +28,7 @@
 
 """ Helper module for the GUI. """
 
-__all__ = ("get_event_description",
+__all__ = ("get_full_description",
            "insert_marker", "move_items", "rename", "ViewTarget", "set_flags", "locate_in_services",
            "scroll_to", "get_base_model", "get_base_paths", "copy_reference", "assign_picons", "remove_picon",
            "is_only_one_item_selected", "gen_bouquets", "BqGenType", "get_selection", "get_service_reference",
@@ -56,17 +56,25 @@ from .dialogs import show_dialog, DialogType, translate
 from .uicommons import ViewTarget, BqGenType, Gtk, Gdk, HIDE_ICON, LOCKED_ICON, KeyboardKey, Column
 
 
-def get_event_description(event):
+def get_full_description(data, event = True):
     """ Create full description from epg data """
-    desc = event.get("e2eventdescription", "") or ""
-    desc_x = event.get("e2eventdescriptionextended", "") or ""
+    if event:
+        desc = data.get("e2eventdescription", "") or ""
+        desc_x = data.get("e2eventdescriptionextended", "") or ""
+    else:
+        desc = data.get("e2description", "") or ""
+        desc_x = data.get("e2descriptionextended", "") or ""
+
     desc = desc.strip()
     desc_x = desc_x.strip()
     if desc != "" and desc_x != "":
         desc += "\n" + desc_x
     elif desc_x != "":
         desc = desc_x
-    return desc.replace('\x8a', '\x0a')
+
+    desc = desc.replace('\x8a', '\x0a') # .replace("<br/>", '\x0a')
+    desc = GLib.markup_escape_text(desc)
+    return desc
 
 
 # ***************** Markers *******************#

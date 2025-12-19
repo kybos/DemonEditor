@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from urllib.parse import quote
 
-from app.ui.main_helper import on_popup_menu, get_event_description
+from app.ui.main_helper import on_popup_menu, get_full_description
 from .dialogs import get_builder, translate, show_dialog, DialogType, BaseDialog
 from .uicommons import Gtk, Gdk, GLib, UI_RESOURCES_PATH, Page, Column, KeyboardKey, MOD_MASK
 from ..commons import run_idle, log
@@ -230,7 +230,7 @@ class TimerTool(Gtk.Box):
         def set_timer_from_event_data(self):
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", None) or "")
             # self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", None) or "")
-            self._timer_desc_entry.set_text(get_event_description(self._timer_data))
+            self._timer_desc_entry.set_text(get_full_description(self._timer_data))
             self._timer_service_entry.set_text(self._timer_data.get("e2eventservicename", None) or "")
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2eventservicereference", None) or "")
             self._timer_event_id_entry.set_text(self._timer_data.get("e2eventid", None) or "")

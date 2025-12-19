@@ -53,7 +53,7 @@ from app.ui.dialogs import translate, show_dialog, DialogType, get_builder, get_
 from app.ui.tasks import BGTaskWidget
 from app.ui.timers import TimerTool
 from ..main_helper import on_popup_menu, update_entry_data, scroll_to, update_toggle_model, update_filter_sat_positions, \
-    show_info_bar_message, get_event_description
+    show_info_bar_message, get_full_description
 from ..uicommons import Gtk, Gdk, UI_RESOURCES_PATH, Column, EPG_ICON, KeyboardKey, Page, HeaderBar
 
 
@@ -788,7 +788,7 @@ class EpgTool(Gtk.Box):
         # desc = event.get("e2eventdescription", "") or ""
         # desc = desc.strip()
 
-        desc = get_event_description(event)
+        desc = get_full_description(event)
 
         start, duration = int(event.get("e2eventstart", "0")), int(event.get("e2eventduration", "0"))
 

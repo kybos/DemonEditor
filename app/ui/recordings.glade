@@ -426,7 +426,7 @@ Author: Dmitriy Yefremov
                                     <property name="wrap-mode">word</property>
                                   </object>
                                   <attributes>
-                                    <attribute name="text">6</attribute>
+                                    <attribute name="markup">6</attribute>
                                   </attributes>
                                 </child>
                               </object>

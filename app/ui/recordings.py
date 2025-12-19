@@ -35,7 +35,7 @@ from urllib.parse import quote
 
 from app.ui.tasks import BGTaskWidget
 from .dialogs import get_builder, show_dialog, DialogType
-from .main_helper import get_base_paths, get_base_model, on_popup_menu, get_event_description
+from .main_helper import get_base_paths, get_base_model, on_popup_menu, get_full_description
 from .uicommons import Gtk, Gdk, GLib, UI_RESOURCES_PATH, Column, KeyboardKey, Page
 from ..commons import run_task, run_idle, log
 from ..connections import UtfFTP, HttpAPI
@@ -230,16 +230,16 @@ class RecordingsTool(Gtk.Box):
         list(map(self._model.append, (self.get_recordings_row(r) for r in recs)))
         list(map(self.get_rec_service_logo, recs))
 
-    def get_description(self, rec):
-        desc = rec.get("e2description", "") or ""
-        desc_x = rec.get("e2descriptionextended", "") or ""
-        desc = desc.strip()
-        desc_x = desc_x.strip()
-        if desc != "" and desc_x != "":
-            desc += "\n" + desc_x
-        elif desc_x != "":
-            desc = desc_x
-        return desc.replace('\x8a', '\x0a')
+    # def get_description(self, rec):
+    #     desc = rec.get("e2description", "") or ""
+    #     desc_x = rec.get("e2descriptionextended", "") or ""
+    #     desc = desc.strip()
+    #     desc_x = desc_x.strip()
+    #     if desc != "" and desc_x != "":
+    #         desc += "\n" + desc_x
+    #     elif desc_x != "":
+    #         desc = desc_x
+    #     return desc.replace('\x8a', '\x0a')
 
     def get_recordings_row(self, rec):
         service = rec.get("e2servicename") or "n/a"
@@ -248,7 +248,7 @@ class RecordingsTool(Gtk.Box):
         length = rec.get("e2length", "0")
         file = rec.get("e2filename", "")
         # desc = rec.get("e2description", "")
-        desc = self.get_description(rec)
+        desc = get_full_description(rec, event=False)
 
         return None, service, title, r_time, length, file, desc, rec
 
