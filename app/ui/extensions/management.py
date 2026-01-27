@@ -2,7 +2,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2023-2024 Dmitriy Yefremov
+# Copyright (c) 2023-2026 Dmitriy Yefremov
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import requests
 from gi.repository import Gtk, Gdk, GLib, Pango, GObject
 
 from app.commons import log, run_task, run_idle
-from app.ui.dialogs import translate
+from app.ui.dialogs import translate, show_dialog, DialogType
 from app.ui.uicommons import HeaderBar
 
 EXT_URL = "https://api.github.com/repos/DYefremov/demoneditor-extensions/contents/extensions/"
@@ -48,7 +48,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:112.0) Gecko/20100101
 
 
 class ExtensionManager(Gtk.Window):
-    ICON_INFO = "emblem-important-symbolic"
+    ICON_INFO = "emblem-synchronizing-symbolic"
     ICON_UPDATE = "network-receive-symbolic"
 
     class Column(IntEnum):
@@ -193,6 +193,22 @@ class ExtensionManager(Gtk.Window):
 
         self.connect("delete-event", lambda w, e: self._app.app_settings.add(ws_property, w.get_size()))
         self.connect("realize", self.init)
+        self.connect("show", self.on_show)
+
+    def on_show(self, window):
+        enabled = self._app.app_settings.extensions_support
+        self.set_sensitive(enabled)
+        if not enabled:
+            msg = f"\n{translate('Extension support is disabled!')}\n\n\t{translate('Do you want to enable it?')}"
+            if show_dialog(DialogType.QUESTION, self, msg) != Gtk.ResponseType.OK:
+                self.close()
+                return True
+
+            self._app.app_settings.extensions_support = True
+            self._app.show_info_message(translate('Restart the program to apply all changes.'), Gtk.MessageType.WARNING)
+            self.close()
+
+        return False
 
     def init(self, widget):
         self._load_spinner.start()
@@ -281,6 +297,7 @@ class ExtensionManager(Gtk.Window):
                 ext_ver = ext[0].VERSION
                 path = ext[1]
                 if ext_ver < ver:
+                    desc = f"[ Update -> ver. {ver} ] {desc}"
                     ver = ext_ver
                     info = self.ICON_INFO
 

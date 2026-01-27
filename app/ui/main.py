@@ -2,7 +2,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2025 Dmitriy Yefremov
+# Copyright (c) 2018-2026 Dmitriy Yefremov
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -88,12 +88,13 @@ class Application(Gtk.Application):
     IPTV_MODEL = "iptv_list_store"
     DRAG_SEP = "::::"
 
-    MARKER_TYPES = {BqServiceType.MARKER.name, BqServiceType.SPACE.name, BqServiceType.ALT.name}
+    MARKER_TYPES = {BqServiceType.MARKER.name, BqServiceType.SPACE.name}
+    NON_REF_TYPES = {BqServiceType.MARKER.name, BqServiceType.SPACE.name, BqServiceType.ALT.name}
 
     DEL_FACTOR = 100  # Batch size to delete in one pass.
     FAV_FACTOR = DEL_FACTOR * 5
 
-    _TV_TYPES = ("TV", "TV (HD)", "TV (UHD)", "TV (H264)")
+    _TV_TYPES = {"TV", "TV (HD)", "TV (UHD)", "TV (H264)"}
 
     BG_TASK_LIMIT = 5
 
@@ -721,17 +722,20 @@ class Application(Gtk.Application):
                   self.on_iptv_list_configuration, self.on_remove_all_unavailable):
             iptv_elem.bind_property("sensitive", self.set_action(h.__name__, h, False), "enabled")
 
-        if self._settings.extensions_support:
-            self.init_extensions(builder)
+        self.init_extensions(builder)
 
     def init_extensions(self, builder):
-        import pkgutil
-        from importlib.util import module_from_spec
         from app.ui.extensions.management import ExtensionManager
         # Extensions (Plugins) section.
         ext_section = builder.get_object(f"{'mac_' if IS_DARWIN else ''}extension_section")
         self.set_action("on_extension_manager", lambda a, v: ExtensionManager(self).show())
         ext_section.append_item(Gio.MenuItem.new(translate("Extension Manager"), "app.on_extension_manager"))
+
+        if not self._settings.extensions_support:
+            return
+
+        import pkgutil
+        from importlib.util import module_from_spec
 
         ext_path = f"{self._settings.default_data_path}tools{os.sep}extensions"
         ext_paths = [f"{os.path.dirname(__file__)}{os.sep}extensions", ext_path, "extensions"]
@@ -1288,7 +1292,7 @@ class Application(Gtk.Application):
     def fav_service_data_func(self, column, renderer, model, itr, data):
         if self._display_epg and self._s_type is SettingsType.ENIGMA_2:
             srv_name = model.get_value(itr, Column.FAV_SERVICE)
-            if model.get_value(itr, Column.FAV_TYPE) in self.MARKER_TYPES:
+            if model.get_value(itr, Column.FAV_TYPE) in self.NON_REF_TYPES:
                 return True
 
             event = self._epg_cache.get_current_event(srv_name)
@@ -2780,7 +2784,7 @@ class Application(Gtk.Application):
             self._alt_revealer.set_visible(False)
             self.on_info_bar_close()
 
-            if self._page is Page.EPG and srv.service_type not in self.MARKER_TYPES:
+            if self._page is Page.EPG and srv.service_type not in self.NON_REF_TYPES:
                 self.emit("fav-changed", srv)
 
     def on_services_selection(self, model, path, column):
@@ -3677,7 +3681,7 @@ class Application(Gtk.Application):
         row = self._fav_model[path][:]
         srv_type, fav_id = row[Column.FAV_TYPE], row[Column.FAV_ID]
 
-        if srv_type in self.MARKER_TYPES and show_error:
+        if srv_type in self.NON_REF_TYPES and show_error:
             self.show_error_message("Not allowed in this context!")
             return
 
@@ -4037,7 +4041,7 @@ class Application(Gtk.Application):
                 if srv_type == BqServiceType.ALT.name:
                     return self.show_error_message("Operation not allowed in this context!")
 
-                if srv_type in self.MARKER_TYPES:
+                if srv_type in self.NON_REF_TYPES:
                     return self.on_rename(view)
                 elif srv_type == BqServiceType.IPTV.name:
                     return self.on_iptv_service_edit(model[paths][Column.FAV_ID], view)
@@ -4167,7 +4171,7 @@ class Application(Gtk.Application):
         """ Marks services with duplicate [names] in the fav list.  """
         from collections import Counter
 
-        dup = Counter(r[Column.FAV_SERVICE] for r in self._fav_model if r[Column.FAV_TYPE] not in self.MARKER_TYPES)
+        dup = Counter(r[Column.FAV_SERVICE] for r in self._fav_model if r[Column.FAV_TYPE] not in self.NON_REF_TYPES)
         dup = {k for k, v in dup.items() if v > 1}
 
         for r in self._fav_model:
