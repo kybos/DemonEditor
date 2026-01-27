@@ -112,6 +112,7 @@ class TimerTool(Gtk.Box):
                 self.set_timer_for_edit()
             elif self._action is TimerTool.TimerAction.EVENT:
                 self.set_timer_from_event_data()
+                self._action = TimerTool.TimerAction.ADD # hack to enable time editing (times are ignored in EVENT mode)
             else:
                 log(f"{__class__.__name__} error: No action set for timer!")
 
@@ -134,7 +135,7 @@ class TimerTool(Gtk.Box):
             if self._action is TimerTool.TimerAction.EVENT:
                 args.append(f"timeraddbyeventid?sRef={s_ref}")
                 args.append(f"eventid={t_data.get('eit', '0')}")
-                args.append(f"justplay={t_data.get('justplay', '')}")
+                args.append(f"justplay={t_data.get('justplay', '0')}")
                 args.append(f"tags={''}")
             else:
                 if self._action is TimerTool.TimerAction.ADD:
@@ -154,7 +155,7 @@ class TimerTool(Gtk.Box):
                 args.append(f"tags={''}")
                 args.append(f"eit={'0'}")
                 args.append(f"disabled={t_data.get('disabled', '1')}")
-                args.append(f"justplay={t_data.get('justplay', '1')}")
+                args.append(f"justplay={t_data.get('justplay', '0')}")
                 args.append(f"afterevent={t_data.get('afterevent', '0')}")
                 args.append(f"repeated={TimerTool.get_repetition_flags(self._days_buttons)}")
 
@@ -203,6 +204,7 @@ class TimerTool(Gtk.Box):
             self._timer_ends_entry.set_text(f"{date.year}-{date.month:02d}-{date.day:02d} {hour:02d}:{minute:02d}")
 
         def set_timer_for_add(self):
+            self._timer_enabled_switch.set_active(True)
             self._timer_service_entry.set_text(self._timer_data.get("e2servicename", ""))
             self._timer_service_ref_entry.set_text(self._timer_data.get("e2servicereference", ""))
             date = datetime.now()
@@ -228,6 +230,7 @@ class TimerTool(Gtk.Box):
             TimerTool.set_repetition_flags(int(self._timer_data.get("e2repeated", "0")), self._days_buttons)
 
         def set_timer_from_event_data(self):
+            self._timer_enabled_switch.set_active(True)
             self._timer_name_entry.set_text(self._timer_data.get("e2eventtitle", None) or "")
             # self._timer_desc_entry.set_text(self._timer_data.get("e2eventdescription", None) or "")
             self._timer_desc_entry.set_text(get_full_description(self._timer_data))
@@ -355,7 +358,7 @@ class TimerTool(Gtk.Box):
     def get_timer_row(self, timer):
         disabled = self._icon if timer.get("e2disabled", "0") == "0" else None
         name = timer.get("e2name", "") or ""
-        description = timer.get("e2description", "").replace('\x8a', '\x0a') or ""
+        description = (timer.get("e2description", "") or "").replace('\x8a', '\x0a')
         service = timer.get("e2servicename", "") or ""
         start_time = datetime.fromtimestamp(int(timer.get("e2timebegin", "0")))
         end_time = datetime.fromtimestamp(int(timer.get("e2timeend", "0")))
@@ -373,11 +376,11 @@ class TimerTool(Gtk.Box):
                 self.add_timer({"e2servicename": service.service,
                                 "e2servicereference": service.picon_id.rstrip(".png").replace("_", ":")})
             else:
-                self._app.show_error_message("Not allowed in this context!")
+                self._app.show_error_message("Not allowed in this context")
         elif p_count > 1:
-            self._app.show_error_message("Please, select only one item!")
+            self._app.show_error_message("Please select only one service")
         else:
-            self._app.show_error_message("No selected item!")
+            self._app.show_error_message("No service selected")
 
     def add_timer(self, timer_data):
         dialog = self.TimerDialog(self._app.app_window, self.TimerAction.ADD, timer_data)
