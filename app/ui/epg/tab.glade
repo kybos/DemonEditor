@@ -375,7 +375,7 @@ Author: Dmitriy Yefremov
                         <property name="fixed-width">200</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Title</property>
-                        <property name="alignment">0.49000000953674316</property>
+                        <property name="alignment">0.5</property>
                         <property name="sort-column-id">1</property>
                         <child>
                           <object class="GtkCellRendererText" id="epg_title_renderer">
@@ -392,16 +392,16 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_start_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="fixed-width">100</property>
+                        <property name="fixed-width">124</property>
                         <property name="min-width">50</property>
-                        <property name="title" translatable="yes">Start time</property>
-                        <property name="alignment">0.49000000953674316</property>
+                        <property name="title" translatable="yes">Start</property>
+                        <property name="alignment">0.5</property>
                         <property name="sort-column-id">2</property>
                         <child>
                           <object class="GtkCellRendererText" id="epg_start_renderer">
                             <property name="xpad">5</property>
-                            <property name="xalign">0.49000000953674316</property>
-                            <property name="width-chars">27</property>
+<!--                            <property name="xalign">0.5</property>-->
+<!--                            <property name="width-chars">27</property>-->
                           </object>
                           <attributes>
                             <attribute name="text">2</attribute>
@@ -413,16 +413,16 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_end_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="fixed-width">100</property>
+                        <property name="fixed-width">60</property>
                         <property name="min-width">50</property>
-                        <property name="title" translatable="yes">End time</property>
-                        <property name="alignment">0.49000000953674316</property>
+                        <property name="title" translatable="yes">End</property>
+                        <property name="alignment">0.5</property>
                         <property name="sort-column-id">3</property>
                         <child>
                           <object class="GtkCellRendererText" id="epg_end_renderer">
                             <property name="xpad">5</property>
-                            <property name="xalign">0.49000000953674316</property>
-                            <property name="width-chars">27</property>
+<!--                            <property name="xalign">0.49000000953674316</property>-->
+<!--                            <property name="width-chars">27</property>-->
                           </object>
                           <attributes>
                             <attribute name="text">3</attribute>
@@ -434,15 +434,15 @@ Author: Dmitriy Yefremov
                       <object class="GtkTreeViewColumn" id="epg_length_column">
                         <property name="resizable">True</property>
                         <property name="sizing">fixed</property>
-                        <property name="fixed-width">80</property>
+                        <property name="fixed-width">60</property>
                         <property name="min-width">50</property>
                         <property name="title" translatable="yes">Length</property>
-                        <property name="alignment">0.49000000953674316</property>
+                        <property name="alignment">0.5</property>
                         <property name="sort-column-id">4</property>
                         <child>
                           <object class="GtkCellRendererText" id="epg_length_renderer">
                             <property name="xpad">5</property>
-                            <property name="xalign">0.49000000953674316</property>
+<!--                            <property name="xalign">0.49000000953674316</property>-->
                           </object>
                           <attributes>
                             <attribute name="text">4</attribute>

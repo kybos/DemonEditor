@@ -637,8 +637,9 @@ class EpgTool(Gtk.Box):
         column = builder.get_object("epg_length_column")
         column.set_cell_data_func(renderer, self.duration_data_func)
         # Time formats.
-        self._time_fmt = "%a %x - %H:%M"
-        self._duration_fmt = f"%{'' if IS_WIN else '-'}Hh %Mm"
+        self._time_fmt = "%x %H:%M" #"%a %x - %H:%M"
+        self._time_fmt_end = "%H:%M" #"%a %x - %H:%M"
+        self._duration_fmt = "%H:%M" #f"%{'' if IS_WIN else '-'}Hh %Mm"
 
         column = builder.get_object("epg_desc_column")
         cell_renderer = builder.get_object("epg_desc_renderer")
@@ -800,7 +801,7 @@ class EpgTool(Gtk.Box):
 
     def end_data_func(self, column, renderer, model, itr, data):
         value = datetime.fromtimestamp(model.get_value(itr, Column.EPG_END))
-        renderer.set_property("text", value.strftime(self._time_fmt))
+        renderer.set_property("text", value.strftime(self._time_fmt_end))
 
     def duration_data_func(self, column, renderer, model, itr, data):
         value = datetime.utcfromtimestamp(model.get_value(itr, Column.EPG_LENGTH))
