@@ -72,7 +72,9 @@ def get_full_description(data, event = True):
     elif desc_x != "":
         desc = desc_x
 
-    desc = desc.replace('\x8a', '\x0a') # .replace("<br/>", '\x0a')
+    desc = desc.replace('<br/>', '\x0a')
+    desc = re.sub('<.*?>', '', desc)
+    desc = desc.replace('\x8a', '\x0a')
     desc = GLib.markup_escape_text(desc)
     return desc
 

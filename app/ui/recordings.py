@@ -69,6 +69,7 @@ class RecordingsTool(Gtk.Box):
                     "on_recordings_activated": self.on_recordings_activated,
                     "on_play": self.on_play,
                     "on_recording_remove": self.on_recording_remove,
+                    "on_recording_download": self.on_recording_download,
                     "on_recordings_model_changed": self.on_recordings_model_changed,
                     "on_recordings_filter_changed": self.on_recordings_filter_changed,
                     "on_recordings_filter_toggled": self.on_recordings_filter_toggled,
@@ -304,22 +305,9 @@ class RecordingsTool(Gtk.Box):
         model = get_base_model(model)
         to_delete = []
 
-        try:
-            self._ftp.voidcmd("NOOP")
-        except all_errors:
-        # except (self._ftp.Error, OSError):
-            try:
-                if self._ftp:
-                    self._ftp.close()
+        ftp_ok = self.check_ftp()
 
-                host, port = self._settings.host, self._settings.port
-                self._ftp = UtfFTP(host=host, port=port, user=self._settings.user, passwd=self._settings.password)
-                self._ftp.encoding = "utf-8"
-            except all_errors:
-                self._app.show_error_message("FTP Connection Error")
-                return
-
-        if paths and self._ftp:
+        if paths and ftp_ok:
             for file, itr in ((model[p][-1].get("e2filename", ""), model.get_iter(p)) for p in paths):
                 resp = self._ftp.delete_file(file)
                 if resp.startswith("2"):
@@ -328,12 +316,71 @@ class RecordingsTool(Gtk.Box):
                     self._app.show_error_message(resp)
                     break
 
-        [self.remove_meta_files(f) for i, f in to_delete if model.remove(i) or True]
+        # [self.remove_meta_files(f) for i, f in to_delete if model.remove(i) or True]
+        for i, f in to_delete:
+            model.remove(i)
+            self.remove_meta_files(f)
 
     @run_task
     def remove_meta_files(self, file):
         name, ex = os.path.splitext(file)
-        [self._ftp.delete_file(f"{name}{suf}") for suf in (f"{ex}.ap", f"{ex}.cuts", f"{ex}.meta", f"{ex}.sc", ".eit")]
+        # [self._ftp.delete_file(f"{name}{suf}") for suf in (f"{ex}.ap", f"{ex}.cuts", f"{ex}.meta", f"{ex}.sc", ".eit")]
+        for suf in (f"{ex}.ap", f"{ex}.cuts", f"{ex}.meta", f"{ex}.sc", ".eit"):
+            self._ftp.delete_file(f"{name}{suf}")
+
+    def on_recording_download(self, action=None, value=None):
+        """ Downloads recording via FTP. """
+        model, paths = self._rec_view.get_selection().get_selected_rows()
+        if len(paths) != 1:
+            self._app.show_error_message("Please select one item.")
+            return
+
+        ftp_ok = self.check_ftp()
+        if not ftp_ok:
+            return
+
+        paths = get_base_paths(paths, model)
+        model = get_base_model(model)
+
+        it = model.get_iter(paths)
+        file_source = model[it][-1].get("e2filename", "")
+
+        dialog = Gtk.FileChooserNative.new("Download file", self._app.app_window, Gtk.FileChooserAction.SAVE)
+        dialog.set_modal(True)
+        ff = Gtk.FileFilter()
+        ff.set_name("Transport stream")
+        ff.add_pattern("*.ts")
+        dialog.add_filter(ff)
+        dialog.set_current_folder(f"{os.path.expanduser('~')}/work")
+        # dialog.set_current_folder(f"{os.path.expanduser('~')}/Downloads")
+        dialog.set_current_name(os.path.basename(file_source))
+        response = dialog.run()
+
+        if response != Gtk.ResponseType.ACCEPT:
+            return
+
+        file_target = dialog.get_filename()
+        dialog.destroy()
+
+        self.download_file(file_source, file_target)
+
+    @run_task
+    def download_file(self, file_source, file_target):
+        self._app.show_info_message(f"Downloading '{file_target.rsplit(os.sep, 1)[1]}'...", Gtk.MessageType.WARNING)
+
+        try:
+            with open(file_target, 'wb') as f:
+                resp = self._ftp.retrbinary('RETR %s' % file_source, f.write)
+        except all_errors as e:
+            log(e)
+            self._app.show_error_message(str(e))
+            return
+
+        if not resp.startswith("2"):
+            self._app.show_error_message(resp)
+            return
+
+        self._app.show_info_message(f"Download finished: '{file_target}'", Gtk.MessageType.INFO)
 
     def on_recordings_model_changed(self, model, path, itr=None):
         self._recordings_count_label.set_text(str(len(model)))
@@ -353,6 +400,10 @@ class RecordingsTool(Gtk.Box):
         self._filter_entry.grab_focus() if button.get_active() else self._filter_entry.set_text("")
 
     def on_recordings_key_press(self, view, event):
+        if event.keyval == Gdk.keyval_from_name("s") and (event.state & Gdk.ModifierType.CONTROL_MASK):
+            self.on_recording_download()
+            return
+
         key_code = event.hardware_keycode
         if not KeyboardKey.value_exist(key_code):
             return
@@ -386,6 +437,24 @@ class RecordingsTool(Gtk.Box):
         rec2 = model.get_value(iter2, 7)
 
         return int(rec1.get("e2time", "0")) - int(rec2.get("e2time", "0"))
+
+    def check_ftp(self):
+        try:
+            self._ftp.voidcmd("NOOP")
+        except all_errors:
+        # except (self._ftp.Error, OSError):
+            try:
+                if self._ftp:
+                    self._ftp.close()
+
+                host, port = self._settings.host, self._settings.port
+                self._ftp = UtfFTP(host=host, port=port, user=self._settings.user, passwd=self._settings.password)
+                self._ftp.encoding = "utf-8"
+            except all_errors:
+                self._app.show_error_message("FTP Connection Error")
+                return False
+
+        return True
 
 
 if __name__ == "__main__":
